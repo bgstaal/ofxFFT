@@ -32,6 +32,16 @@ struct ofxFFTData {
     float linearEQSlope;
 };
 
+struct ofxFFTLogarithmicData
+{
+	vector<float> data;
+	vector<float> dataNorm;
+	vector<float> dataPeak;
+	vector<int> dataCut;
+	vector<int> prevDataCut;
+	vector<bool> dataBeats;
+};
+
 class ofxFFTBase : public ofBaseApp {
 
 public:
@@ -46,6 +56,7 @@ public:
     
     virtual void draw(int x=0, int y=0);
     virtual void draw(int x, int y, int w, int h);
+		virtual void drawLogarithmic(int x, int y, int w = OFX_FFT_WIDTH, int h = OFX_FFT_HEIGHT);
     
     virtual void drawData(const ofxFFTData &audioData, int w = OFX_FFT_WIDTH, int h = OFX_FFT_HEIGHT);
     virtual void drawBg(const ofxFFTData &audioData, int w = OFX_FFT_WIDTH, int h = OFX_FFT_HEIGHT);
@@ -61,6 +72,7 @@ public:
     
     virtual void initAudioData(ofxFFTData &audioData, int dataSize);
     virtual void updateAudioData(ofxFFTData &audioData, float *dataNew);
+		virtual void updateLogarithmicData(ofxFFTLogarithmicData &logData, ofxFFTData &audioData);
     virtual void mirrorAudioData(ofxFFTData &audioData);
     virtual void resetAudioData(ofxFFTData &audioData);
     
@@ -79,7 +91,8 @@ public:
     virtual const vector<float> & getFftNormData();
     virtual const vector<float> & getFftPeakData();
     virtual const vector<int> & getGlitchData();
-    
+		virtual const ofxFFTLogarithmicData & getLogarithmicData();
+	
     virtual void getFftData(float *data, int length);
     virtual void getFftPeakData(float *data, int length);
     virtual void getGlitchData(int * data, int length);
@@ -98,6 +111,8 @@ public:
     bool bMirrorData;
     
     ofxFFTData fftData;
+		ofxFFTLogarithmicData logData;
+	
     
     int renderBorder;
     int renderSingleBandWidth;

@@ -9,6 +9,7 @@
 
 #include "ofxFFTBase.h"
 #include "fft.h"
+#include <numeric>
 
 ofxFFTBase::ofxFFTBase() {
     _fft = NULL;
@@ -55,7 +56,8 @@ void ofxFFTBase::update() {
 #endif
     
     updateAudioData(fftData, magnitudes);
-    
+		updateLogarithmicData(logData, fftData);
+	
     if(bMirrorData) {
         mirrorAudioData(fftData);
     }
@@ -263,6 +265,11 @@ int ofxFFTBase::getBufferSize() {
     return bufferSize;
 }
 
+const ofxFFTLogarithmicData &ofxFFTBase::getLogarithmicData()
+{
+	return logData;
+}
+
 void ofxFFTBase::setThreshold(float value) {
     value = ofClamp(value, 0, 1);
     fftData.cutThreshold = value;
@@ -342,12 +349,132 @@ void ofxFFTBase::getGlitchData(int * data, int length) {
     }
 }
 
+void ofxFFTBase::updateLogarithmicData(ofxFFTLogarithmicData &logData, ofxFFTData &audioData)
+{
+	// exponential incrementer
+	int length = 1;
+	int startIndex = 0;
+	int endIndex = 0;
+	logData.prevDataCut = logData.dataCut;
+	logData.dataNorm.clear();
+	logData.dataPeak.clear();
+	logData.dataCut.clear();
+	logData.data.clear();
+	logData.dataBeats.clear();
+	
+	while ((endIndex + length) <= binSize)
+	{
+		endIndex = startIndex + length;
+		//cout << "start:" << startIndex << " end: " << endIndex << endl;
+		
+		int num = endIndex - startIndex;
+		//float avgFftBin = accumulate(fftData.dataNorm.begin() + startIndex, fftData.dataNorm.begin() + endIndex, 0);
+		int i;
+		float avgNorm = 0.0f;
+		float avgPeak = 0.0f;
+		for (i = startIndex; i < endIndex; i++)
+		{
+			avgNorm += fftData.dataNorm[i];
+			avgPeak += fftData.dataPeak[i];
+		}
+		
+		avgNorm /= num;
+		avgPeak /= num;
+		
+		int dataCutVal; // switch data (on/off).
+		if(avgPeak < audioData.cutThreshold) {
+			dataCutVal = 1;
+		} else {
+			dataCutVal = 0;
+		}
+		
+		logData.dataCut.push_back(dataCutVal);
+		logData.dataPeak.push_back(avgPeak);
+		logData.dataNorm.push_back(avgNorm);
+		
+		startIndex = endIndex;
+		length += length;
+	}
+	
+	for (int i = 0; i < logData.dataCut.size(); i++)
+	{
+		bool beat = false;
+		if (logData.prevDataCut.size() > 0 && logData.dataCut < logData.prevDataCut)
+		{
+			beat = true;
+		}
+		
+		logData.dataBeats.push_back(beat);
+	}
+}
+
 //////////////////////////////////////////////////////
 // DRAW.
 //////////////////////////////////////////////////////
 
 void ofxFFTBase::draw(int x, int y) {
     draw(x, y, OFX_FFT_WIDTH, OFX_FFT_HEIGHT);
+}
+
+void ofxFFTBase::drawLogarithmic(int x, int y, int w, int h)
+{
+	vector<float> &fftLogNormData = logData.dataNorm;
+	vector<float> &fftLogPeakData = logData.dataPeak;
+	vector<int> &fftLogCutData = logData.dataCut;
+	
+	ofPushMatrix();
+	ofTranslate(x, y);
+	
+		drawBg(fftData, w, h);
+	
+		int renderSingleBandWidth = w / (float)fftLogNormData.size();
+		int bx, by; // border.
+		bx = by = renderBorder;
+	
+		// draw cut data
+		ofPushStyle();
+			ofFill();
+			ofSetColor(200);
+			for(int i=0; i<fftLogCutData.size(); i++) {
+				ofDrawRectangle(i * renderSingleBandWidth + bx,
+												h + by,
+												renderSingleBandWidth,
+												-fftLogCutData[i] * h);
+			}
+		ofPopStyle();
+	
+		//draw normalized data
+		ofPushStyle();
+		for(int i=0; i<fftLogNormData.size(); i++) {
+			ofFill();
+			ofSetColor(100);
+			if (logData.dataBeats[i]) ofSetColor(255, 0, 0);
+			ofDrawRectangle(i * renderSingleBandWidth + bx, h + by, renderSingleBandWidth, -fftLogNormData[i] * h);
+			
+			ofNoFill();
+			ofSetColor(232);
+			ofDrawRectangle(i * renderSingleBandWidth + bx, h + by, renderSingleBandWidth, -fftLogNormData[i] * h);
+		}
+		ofPopStyle();
+	
+		//draw peak data
+		ofPushStyle();
+			ofFill();
+			ofSetColor(0);
+			for(int i=0; i<fftLogPeakData.size(); i++)
+			{
+				float p = fftLogPeakData[i];
+				ofDrawRectangle(i * renderSingleBandWidth + bx, (1 - p) * (h - 2) + by, renderSingleBandWidth - 1, 2);
+			}
+		ofPopStyle();
+	
+	
+	drawBorder(w, h);
+	drawThresholdLine(fftData);
+	ofPopMatrix();
+	
+	//drawThresholdLine(audioData, width, height);
+	
 }
 
 void ofxFFTBase::draw(int x, int y, int width, int height) {
@@ -361,11 +488,11 @@ void ofxFFTBase::draw(int x, int y, int width, int height) {
 
 void ofxFFTBase::drawData(const ofxFFTData & audioData, int width, int height) {
     drawBg(audioData, width, height);
-    drawGlitchData(audioData, width, height);
+		drawGlitchData(audioData, width, height);
 //    drawFftData(audioData, width, height);   // this is audio data before its been normalised, good for debugging.
     drawFftNormData(audioData, width, height);
-    drawFftPeakData(audioData, width, height);
-    drawThresholdLine(audioData, width, height);
+		drawFftPeakData(audioData, width, height);
+		drawThresholdLine(audioData, width, height);
     drawBorder(width, height);
 }
 
