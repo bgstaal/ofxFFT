@@ -265,7 +265,7 @@ int ofxFFTBase::getBufferSize() {
     return bufferSize;
 }
 
-const ofxFFTLogarithmicData &ofxFFTBase::getLogarithmicData()
+ ofxFFTLogarithmicData ofxFFTBase::getLogarithmicData()
 {
 	return logData;
 }
@@ -361,6 +361,7 @@ void ofxFFTBase::updateLogarithmicData(ofxFFTLogarithmicData &logData, ofxFFTDat
 	logData.dataCut.clear();
 	logData.data.clear();
 	logData.dataBeats.clear();
+	logData.peakAverage = 0.0f;
 	
 	while ((endIndex + length) <= binSize)
 	{
@@ -391,10 +392,13 @@ void ofxFFTBase::updateLogarithmicData(ofxFFTLogarithmicData &logData, ofxFFTDat
 		logData.dataCut.push_back(dataCutVal);
 		logData.dataPeak.push_back(avgPeak);
 		logData.dataNorm.push_back(avgNorm);
+		logData.peakAverage += avgPeak;
 		
 		startIndex = endIndex;
 		length += length;
 	}
+	
+	logData.peakAverage /= logData.dataPeak.size();
 	
 	for (int i = 0; i < logData.dataCut.size(); i++)
 	{
@@ -470,7 +474,7 @@ void ofxFFTBase::drawLogarithmic(int x, int y, int w, int h)
 	
 	
 	drawBorder(w, h);
-	drawThresholdLine(fftData);
+	drawThresholdLine(fftData, w, h);
 	ofPopMatrix();
 	
 	//drawThresholdLine(audioData, width, height);

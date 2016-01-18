@@ -40,6 +40,7 @@ struct ofxFFTLogarithmicData
 	vector<int> dataCut;
 	vector<int> prevDataCut;
 	vector<bool> dataBeats;
+	float peakAverage;
 };
 
 class ofxFFTBase : public ofBaseApp {
@@ -91,7 +92,7 @@ public:
     virtual const vector<float> & getFftNormData();
     virtual const vector<float> & getFftPeakData();
     virtual const vector<int> & getGlitchData();
-		virtual const ofxFFTLogarithmicData & getLogarithmicData();
+		virtual ofxFFTLogarithmicData getLogarithmicData();
 	
     virtual void getFftData(float *data, int length);
     virtual void getFftPeakData(float *data, int length);
