@@ -47,7 +47,7 @@ class ofxFFTBase : public ofBaseApp {
 
 public:
     
-    ofxFFTBase();
+    ofxFFTBase(int bufferSize = 512);
     ~ofxFFTBase();
     
     virtual void setup();

@@ -11,7 +11,7 @@
 #include "fft.h"
 #include <numeric>
 
-ofxFFTBase::ofxFFTBase() {
+ofxFFTBase::ofxFFTBase(int bufferSize) {
     _fft = NULL;
     buffer = NULL;
     magnitudes = NULL;
@@ -26,7 +26,7 @@ ofxFFTBase::ofxFFTBase() {
     
     renderBorder = 1;
     
-    bufferSize = 512; // default.
+    this->bufferSize = bufferSize; // default.
     binSize = (int)(bufferSize * 0.5);
     
     initFFT();
@@ -452,7 +452,7 @@ void ofxFFTBase::drawLogarithmic(int x, int y, int w, int h)
 		for(int i=0; i<fftLogNormData.size(); i++) {
 			ofFill();
 			ofSetColor(100);
-			if (logData.dataBeats[i]) ofSetColor(255, 0, 0);
+			if (logData.dataBeats[i]) ofSetColor(10, 200, 255);
 			ofDrawRectangle(i * renderSingleBandWidth + bx, h + by, renderSingleBandWidth, -fftLogNormData[i] * h);
 			
 			ofNoFill();
