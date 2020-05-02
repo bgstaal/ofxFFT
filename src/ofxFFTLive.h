@@ -10,14 +10,17 @@
 #include "ofxFFTBase.h"
 
 class ofxFFTLive : public ofxFFTBase {
+
+	int _inputChannel;
   
 public:
 
     ofxFFTLive();
     ~ofxFFTLive();
     
-    void setup();
+    void setup(int deviceID = -1, int inputChannel = 0);
     void audioIn(float * input, int bufferSize, int nChannels);
+		void audioIn(ofSoundBuffer& buffer);
     
     ofSoundStream * soundStream;
 };

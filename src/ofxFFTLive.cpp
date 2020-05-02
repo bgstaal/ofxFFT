@@ -20,11 +20,28 @@ ofxFFTLive::~ofxFFTLive() {
     soundStream = NULL;
 }
 
-void ofxFFTLive::setup() {
+void ofxFFTLive::setup(int deviceID, int inputChannel) 
+{
+		_inputChannel = inputChannel;
     ofSoundStream * soundStream = new ofSoundStream();
+
+		if (deviceID != -1)
+		{
+			soundStream->setDeviceID(deviceID);
+		}
+
+		/*
+		auto devices = soundStream->getDeviceList();
+		
+		for (auto &d : devices)
+		{
+			ofLog() << d.deviceID << " / " << d.name << " num input channels: " << d.inputChannels;
+		}
+		*/
+
     soundStream->setup(this,                   // callback obj.
                        0,                      // out channels.
-                       1,                      // in channels.
+                       inputChannel+1,                      // in channels.
                        44100,                  // sample rate.
                        getBufferSize(),        // buffer size.
                        4);                     // number of buffers.
@@ -33,4 +50,12 @@ void ofxFFTLive::setup() {
 
 void ofxFFTLive::audioIn(float * input, int bufferSize, int nChannels) {
     ofxFFTBase::audioIn(input);
+}
+
+void ofxFFTLive::audioIn(ofSoundBuffer & buffer)
+{
+	ofSoundBuffer b;
+	buffer.getChannel(b, _inputChannel);
+	ofxFFTBase::audioIn(&b.getBuffer()[0]);
+	//ofLog() << "audio input " << buffer.getDeviceID() << " / " << buffer.getNumChannels();
 }

@@ -433,12 +433,12 @@ void ofxFFTBase::drawLogarithmic(int x, int y, int w, int h)
 	
 		int renderSingleBandWidth = w / (float)fftLogNormData.size();
 		int bx, by; // border.
-		bx = by = renderBorder;
+		bx = by = 0;
 	
 		// draw cut data
 		ofPushStyle();
 			ofFill();
-			ofSetColor(200);
+			ofSetColor(20);
 			for(int i=0; i<fftLogCutData.size(); i++) {
 				ofDrawRectangle(i * renderSingleBandWidth + bx,
 												h + by,
@@ -452,19 +452,21 @@ void ofxFFTBase::drawLogarithmic(int x, int y, int w, int h)
 		for(int i=0; i<fftLogNormData.size(); i++) {
 			ofFill();
 			ofSetColor(100);
-			if (logData.dataBeats[i]) ofSetColor(10, 200, 255);
+			if (logData.dataBeats[i]) ofSetColor(255);
 			ofDrawRectangle(i * renderSingleBandWidth + bx, h + by, renderSingleBandWidth, -fftLogNormData[i] * h);
 			
+			/*
 			ofNoFill();
 			ofSetColor(232);
 			ofDrawRectangle(i * renderSingleBandWidth + bx, h + by, renderSingleBandWidth, -fftLogNormData[i] * h);
+			*/
 		}
 		ofPopStyle();
 	
 		//draw peak data
 		ofPushStyle();
 			ofFill();
-			ofSetColor(0);
+			ofSetColor(255);
 			for(int i=0; i<fftLogPeakData.size(); i++)
 			{
 				float p = fftLogPeakData[i];
@@ -473,7 +475,7 @@ void ofxFFTBase::drawLogarithmic(int x, int y, int w, int h)
 		ofPopStyle();
 	
 	
-	drawBorder(w, h);
+	//drawBorder(w, h);
 	drawThresholdLine(fftData, w, h);
 	ofPopMatrix();
 	
@@ -502,9 +504,9 @@ void ofxFFTBase::drawData(const ofxFFTData & audioData, int width, int height) {
 
 void ofxFFTBase::drawBg(const ofxFFTData & audioData, int w, int h) {
     int bx, by; // border.
-    bx = by = renderBorder;
+    bx = by = 0;
     
-    ofSetColor(240);
+    ofSetColor(30);
     ofDrawRectangle(bx, by, w, h);
     ofSetColor(255);
 }
@@ -587,11 +589,14 @@ void ofxFFTBase::drawThresholdLine(const ofxFFTData & audioData, int w, int h) {
     int bx, by; // border.
     bx = by = renderBorder;
     
-    ofSetColor(0);
-    ofDrawRectangle(bx, (1 - audioData.cutThreshold) * h + by - 1, w, 1);
+    ofSetColor(255);
+    ofDrawRectangle(bx, (audioData.cutThreshold) * h + by - 1, w, 1);
+
+		/*
     ofSetColor(255);
     ofDrawRectangle(bx, (1 - audioData.cutThreshold) * h + by + 0, w, 1);
     ofSetColor(0);
     ofDrawRectangle(bx, (1 - audioData.cutThreshold) * h + by + 1, w, 1);
     ofSetColor(255);
+		*/
 }
